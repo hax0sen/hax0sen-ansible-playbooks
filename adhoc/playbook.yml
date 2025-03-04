@@ -1,0 +1,32 @@
+---
+- hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Check if a file exists
+      stat:
+        path: /tmp/testfile.txt
+      register: file_status
+
+    - name: Print file existence status
+      debug:
+        msg: "File /tmp/testfile.txt exists: {{ file_status.stat.exists }}"
+
+    - name: Check if a command is available
+      command: which bash
+      register: bash_check
+      ignore_errors: true # so the playbook doesn't stop if bash isn't there
+
+    - name: Print bash availability
+      debug:
+        msg: "Bash is available: {{ bash_check.rc == 0 }}"
+
+    - name: Check free disk space
+      shell: df -h /
+      register: disk_space
+      changed_when: false # this command doesn't change anything
+
+    - name: Print free disk space
+      debug:
+        msg: "{{ disk_space.stdout_lines }}"
