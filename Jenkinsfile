@@ -22,7 +22,7 @@ pipeline {
                         writeFile file: adhocPlaybookFile, text: adhocPlaybookContent
 
                         sh """
-                            ansible-playbook -i inventory.yml ${adhocPlaybookFile}
+                            ANSIBLE_CONFIG=${WORKSPACE}/ansible.cfg ansible-playbook -i inventory.yml ${adhocPlaybookFile}
                         """
 
                         // Optionally, delete the temporary file after execution
