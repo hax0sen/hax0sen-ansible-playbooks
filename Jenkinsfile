@@ -44,11 +44,21 @@ pipeline {
                         def syntaxCheckStatus = sh(script: "ansible-playbook --syntax-check -i inventory.yml ${adhocPlaybookFile}", returnStatus: true)
                         
                         if (syntaxCheckStatus == 0) {
-                            echo "Playbook syntax is correct. Proceeding to execute playbook."
+                            echo "Playbook syntax is correct. Performing dry-run (check mode)."
                             
-                            sh """
-                                ANSIBLE_CONFIG=${WORKSPACE}/ansible.cfg ansible-playbook -i inventory.yml ${adhocPlaybookFile}
-                            """
+                            // Dry-run (check mode) to simulate playbook execution
+                            def checkStatus = sh(script: "ansible-playbook --check -i inventory.yml ${adhocPlaybookFile}", returnStatus: true)
+                            
+                            if (checkStatus == 0) {
+                                echo "Dry-run successful. Proceeding to execute the playbook."
+                                
+                                // Run the playbook for real
+                                sh """
+                                    ANSIBLE_CONFIG=${WORKSPACE}/ansible.cfg ansible-playbook -i inventory.yml ${adhocPlaybookFile}
+                                """
+                            } else {
+                                error("Dry-run failed. The playbook will not be executed.")
+                            }
                         } else {
                             error("Syntax check failed. The playbook will not be executed.")
                         }
