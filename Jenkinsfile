@@ -34,7 +34,7 @@ pipeline {
                 }
             }
         }
-        stage('Run Adhoc Ansible Playbook') {
+        stage('Run Adhoc Ansible Playbook - Check Mode') {
             steps {
                 script {
                     def adhocPlaybookFile = "${WORKSPACE}/adhoc_playbook_temp.yml"
@@ -50,18 +50,35 @@ pipeline {
                             def checkStatus = sh(script: "ansible-playbook --check -i inventory.yml ${adhocPlaybookFile}", returnStatus: true)
                             
                             if (checkStatus == 0) {
-                                echo "Dry-run successful. Proceeding to execute the playbook."
-                                
-                                // Run the playbook for real
-                                sh """
-                                    ANSIBLE_CONFIG=${WORKSPACE}/ansible.cfg ansible-playbook -i inventory.yml ${adhocPlaybookFile}
-                                """
+                                echo "Dry-run successful. Waiting for approval to continue."
                             } else {
                                 error("Dry-run failed. The playbook will not be executed.")
                             }
                         } else {
                             error("Syntax check failed. The playbook will not be executed.")
                         }
+                    }
+                }
+            }
+        }
+        stage('Approval to Execute Playbook') {
+            steps {
+                input message: 'Approve to run the playbook?', ok: 'Approve', submitter: 'admin'
+            }
+        }
+        stage('Run Adhoc Ansible Playbook') {
+            steps {
+                script {
+                    def adhocPlaybookFile = "${WORKSPACE}/adhoc_playbook_temp.yml"
+                    def adhocPlaybookContent = params.ADHOC_PLAYBOOK_CONTENT.trim()
+
+                    if (adhocPlaybookContent) {
+                        echo "Proceeding with the execution of the playbook."
+                        
+                        // Run the playbook for real
+                        sh """
+                            ANSIBLE_CONFIG=${WORKSPACE}/ansible.cfg ansible-playbook -i inventory.yml ${adhocPlaybookFile}
+                        """
                     }
                 }
             }
