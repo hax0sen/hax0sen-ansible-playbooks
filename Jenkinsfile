@@ -21,12 +21,12 @@ pipeline {
                         def adhocPlaybookFile = "${WORKSPACE}/adhoc_playbook_temp.yml"
                         writeFile file: adhocPlaybookFile, text: adhocPlaybookContent
 
-                        // YAML Validation
-                        try {
-                            sh "yamllint ${adhocPlaybookFile}"
-                            echo "YAML validation successful."
-                        } catch (Exception e) {
+                        // YAML Validation using returnStatus to handle errors
+                        def lintStatus = sh(script: "yamllint ${adhocPlaybookFile}", returnStatus: true)
+                        if (lintStatus != 0) {
                             error("YAML validation failed. Please check your playbook syntax.")
+                        } else {
+                            echo "YAML validation successful."
                         }
                     } else {
                         echo "No adhoc playbook content provided."
@@ -42,6 +42,7 @@ pipeline {
 
                     if (adhocPlaybookContent) {
                         sh """
+                            ANSIBLE_CONFIG=${WORKSPACE}/ansible.cfg ansible-playbook --syntax-check -i inventory.yml ${adhocPlaybookFile}
                             ANSIBLE_CONFIG=${WORKSPACE}/ansible.cfg ansible-playbook -i inventory.yml ${adhocPlaybookFile}
                         """
 
@@ -53,5 +54,3 @@ pipeline {
         }
     }
 }
-
-
