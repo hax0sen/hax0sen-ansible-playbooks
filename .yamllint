@@ -2,3 +2,4 @@ extends: default
 rules:
   line-length:
     max: 120
+  new-line-at-end-of-file: disable
