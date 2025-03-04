@@ -1,20 +1,35 @@
 pipeline {
     agent any
 
+    parameters {
+        text(name: 'ADHOC_PLAYBOOK_CONTENT', defaultValue: '', description: 'Enter the adhoc playbook YAML content.')
+    }
+
     environment {
         ANSIBLE_CONFIG = "${WORKSPACE}/ansible.cfg"
     }
 
     stages {
-        stage('Run Ansible Playbook') {
+        stage('Run Adhoc Ansible Playbook') {
             steps {
                 script {
-                    def inventoryFile = "${WORKSPACE}/inventory.yml"
-                    def playbookFile = "${WORKSPACE}/adhoc/playbook.yml" // Replace with your playbook name.
+                    def adhocPlaybookContent = params.ADHOC_PLAYBOOK_CONTENT.trim()
 
-                    sh """
-                        ansible-playbook -i ${inventoryFile} ${playbookFile}
-                    """
+                    if (adhocPlaybookContent) {
+                        def adhocPlaybookFile = "${WORKSPACE}/adhoc_playbook_temp.yml"
+
+                        // Write the playbook content to a temporary file
+                        writeFile file: adhocPlaybookFile, text: adhocPlaybookContent
+
+                        sh """
+                            ansible-playbook -i inventory.yml ${adhocPlaybookFile}
+                        """
+
+                        // Optionally, delete the temporary file after execution
+                        // sh "rm ${adhocPlaybookFile}"
+                    } else {
+                        echo "No adhoc playbook content provided."
+                    }
                 }
             }
         }
