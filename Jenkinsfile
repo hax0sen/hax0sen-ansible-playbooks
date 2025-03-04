@@ -23,10 +23,11 @@ pipeline {
 
                         // YAML Validation
                         try {
-                            sh "yamllint ${adhocPlaybookFile}"
+                            sh "yamllint --strict ${adhocPlaybookFile}"
                             echo "YAML validation successful."
                         } catch (Exception e) {
-                            error("YAML validation failed. Please check your playbook syntax.")
+                            def yamllintOutput = sh(script: "yamllint --strict ${adhocPlaybookFile}", returnStdout: true).trim()
+                            error("YAML validation failed. Errors:\n${yamllintOutput}")
                         }
                     } else {
                         echo "No adhoc playbook content provided."
