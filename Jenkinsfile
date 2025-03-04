@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     parameters {
-        text(name: 'ADHOC_PLAYBOOK_CONTENT', defaultValue: '', description: 'Enter the adhoc playbook YAML content.')
+        string(name: 'ADHOC_PLAYBOOK_CONTENT', defaultValue: '', description: 'Enter the adhoc playbook YAML content.')
     }
 
     environment {
@@ -17,7 +17,7 @@ pipeline {
 
                     if (adhocPlaybookContent) {
                         def adhocPlaybookFile = "${WORKSPACE}/adhoc_playbook_temp.yml"
-
+                        
                         // Write the playbook content to a temporary file
                         writeFile file: adhocPlaybookFile, text: adhocPlaybookContent
 
