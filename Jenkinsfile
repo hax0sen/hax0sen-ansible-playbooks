@@ -1,6 +1,8 @@
 pipeline {
     agent any
-
+    options {
+        ansiColor('xterm')  // Enables colorized output
+    }
     parameters {
         text(name: 'ADHOC_PLAYBOOK_CONTENT', defaultValue: '', description: 'Enter the adhoc playbook YAML content.')
     }
